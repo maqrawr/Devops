@@ -1,0 +1,7 @@
+a = float(input("Introduce tu peso: "))
+b = float(input("Introduce tu talla (en m): "))
+
+talla_cuadrado = b**2
+operacion = a/talla_cuadrado
+def round(operacion):
+    print(operacion)

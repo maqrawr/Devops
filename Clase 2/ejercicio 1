@@ -1,0 +1,31 @@
+#def se usa para re utilizar funciones 
+def pedir_texto(mensaje):
+    while True:
+        dato = input(mensaje)
+        if dato.isalpha(): #isalpha es para solo caracteres 
+            return dato
+        else:
+            print("Ingrese solo letras")
+
+def pedir_numero(mensaje):
+    while True:
+        dato = input(mensaje)
+        if dato.isdigit():
+            return int(dato)
+        else:
+            print("Ingrese solo números")
+
+def pedir_estado_civil():
+    while True:
+        dato = input("¿Estás casado? (si/no): ").lower() #lower es para que los caracteres se pasen a minusculas
+        if dato in ["si", "no"]:
+            return "estás casado" if dato == "si" else "no estás casado"
+        else:
+            print("Responda 'si' o 'no'")
+
+nombre = pedir_texto("Introduce tu nombre: ")
+edad = pedir_numero("¿Qué edad tienes?: ")  
+hobby = pedir_texto("¿Cuál es tu actividad favorita?: ")
+estado_civil = pedir_estado_civil()
+
+print(f"Tu nombre es {nombre}, tu edad es {edad}, tu actividad favorita es {hobby} y {estado_civil}.")

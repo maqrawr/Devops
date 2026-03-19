@@ -1,0 +1,25 @@
+#calculadora
+
+a = float(input("Introduce el primer numero: "))
+
+
+operacion = int(input("introduce que operacion quieres realizar: \n 1: suma \n 2: resta \n 3: multiplicacion \n 4: cuadrado"))
+
+if operacion == 1:
+    segundo_numero = float(input("Introduce tu segundo numero: "))
+    print("La suma entre:",a, "mas" ,segundo_numero, "es = " ,a+segundo_numero)
+elif operacion == 2:
+    b = float(input("Introduce tu segundo numero: "))
+    print("La resta entre:",a, "menos" ,b, "es = " ,a-b)
+elif operacion == 3:
+    b = float(input("Introduce tu segundo numero: "))
+    print("La division entre:",a, "entre" ,b, "es = " ,a/b)
+elif operacion == 4:
+    b = float(input("Introduce tu segundo numero: "))
+    print("La multiplicacion entre:",a, "por" ,b, "es = " ,a*b)
+elif operacion == 5:
+    print("El cuadrado de",a, "es = " ,a**2)
+elif operacion == 6:
+    print("La raiz cuadrada de",a, "es = ", a**0.5)
+
+

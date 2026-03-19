@@ -1,0 +1,4 @@
+a = input("dame el segundo valor: ")
+b = input("dame el rpimer valor: ")
+res = a+b
+print(res)
