@@ -17,6 +17,7 @@ palabra = input("Coloca tu palabra a traducir: ")
 idioma = input("¿A qué idioma? (ingles, aleman, frances): ")
 
 # Búsqueda
+
 if palabra in diccionario:
     if idioma in diccionario[palabra]:
         print("Traducción:", diccionario[palabra][idioma])
@@ -24,3 +25,4 @@ if palabra in diccionario:
         print("Idioma no disponible")
 else:
     print("Palabra no encontrada")
+    

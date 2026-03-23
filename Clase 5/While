@@ -1,0 +1,27 @@
+#cajero 
+
+NIP = (int(input("introduce tu nip: \n")))
+saldo = 10
+
+while NIP == 190190:
+    print("Bienvenido de nuevo meow \n 1. Depositar \n 2. Retirar \n 3. Salir")
+    accion = int(input("Que deseas realizar?"))
+    if accion == 1:
+        depostio = int(input("Que monto desea depositar a su cuenta: "))
+        saldo += depostio
+        print("Trans exitosa!!! \n Su saldo actual ahora es de:" , saldo)
+    if accion == 2:
+        retiro = int(input("Cuanta cantidad desea sacar: "))
+        if retiro > saldo:
+            print("no cuenta con el saldo suficiente")
+        else: 
+            print("retiro exitoso de: ", retiro)
+    if accion == 3:
+        print("adios meow")
+        break
+else:
+    print("introduce un NIP valido")
+    
+
+
+
