@@ -1,27 +1,415 @@
-#cajero 
+import tkinter as tk
+from tkinter import messagebox
 
-NIP = (int(input("introduce tu nip: \n")))
-saldo = 10
+# ── Paleta BBVA ───────────────────────────────────────────────────────────────
+BBVA_BLUE       = "#004A97"
+BBVA_BLUE_DARK  = "#002F6C"
+BBVA_BLUE_BTN   = "#1464A5"
+BBVA_SKY        = "#0078D4"
+BBVA_WHITE      = "#FFFFFF"
+BBVA_LIGHT_BG   = "#EAF2FB"
+BBVA_GRAY_BG    = "#F0F4F8"
+BBVA_BORDER     = "#C8D8E8"
+BBVA_DARK_TEXT  = "#1A2332"
+BBVA_MID_GRAY   = "#6B7C93"
+BBVA_ORANGE     = "#F5A623"
+BBVA_GREEN      = "#00A650"
+BBVA_RED        = "#D0021B"
 
-while NIP == 190190:
-    print("Bienvenido de nuevo meow \n 1. Depositar \n 2. Retirar \n 3. Salir")
-    accion = int(input("Que deseas realizar?"))
-    if accion == 1:
-        depostio = int(input("Que monto desea depositar a su cuenta: "))
-        saldo += depostio
-        print("Trans exitosa!!! \n Su saldo actual ahora es de:" , saldo)
-    if accion == 2:
-        retiro = int(input("Cuanta cantidad desea sacar: "))
-        if retiro > saldo:
-            print("no cuenta con el saldo suficiente")
-        else: 
-            print("retiro exitoso de: ", retiro)
-    if accion == 3:
-        print("adios meow")
-        break
-else:
-    print("introduce un NIP valido")
-    
+NIP_CORRECTO  = 190190
+SALDO_INICIAL = 10.0
 
 
+class CajeroBBVA:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("BBVA Bancomer — Cajero Automático")
+        self.root.geometry("760x540")
+        self.root.resizable(False, False)
+        self.root.configure(bg=BBVA_LIGHT_BG)
+        self.saldo = SALDO_INICIAL
+        self._build_login()
 
+    # ─── helpers ──────────────────────────────────────────────────────────────
+    def _clear(self):
+        for w in self.root.winfo_children():
+            w.destroy()
+
+    def _topbar(self, parent, titulo="Menú principal"):
+        bar = tk.Frame(parent, bg=BBVA_BLUE, height=52)
+        bar.pack(fill="x")
+        bar.pack_propagate(False)
+        # Logo BBVA
+        tk.Label(bar, text="BBVA", font=("Georgia", 18, "bold italic"),
+                 fg=BBVA_WHITE, bg=BBVA_BLUE).pack(side="left", padx=(20, 4), pady=8)
+        tk.Label(bar, text="Bancomer", font=("Helvetica", 12),
+                 fg="#A8C8F0", bg=BBVA_BLUE).pack(side="left", pady=12)
+        # titulo derecha
+        tk.Label(bar, text=f"🏠  {titulo}", font=("Helvetica", 10),
+                 fg=BBVA_WHITE, bg=BBVA_BLUE).pack(side="right", padx=20)
+
+    def _footbar(self, parent):
+        bar = tk.Frame(parent, bg=BBVA_BLUE_DARK, height=30)
+        bar.pack(fill="x", side="bottom")
+        bar.pack_propagate(False)
+        tk.Label(bar, text="Servicio al cliente: 800 911 1166  •  bbva.mx",
+                 font=("Helvetica", 8), fg="#7AADD4", bg=BBVA_BLUE_DARK).pack(pady=6)
+
+    def _card(self, parent, padx=24, pady=10):
+        f = tk.Frame(parent, bg=BBVA_WHITE, relief="flat",
+                     highlightbackground=BBVA_BORDER, highlightthickness=1)
+        f.pack(padx=padx, pady=pady, fill="x")
+        return f
+
+    def _atm_btn(self, parent, icon, label, cmd, color=BBVA_BLUE_BTN, width=130, height=70):
+        btn = tk.Frame(parent, bg=color, cursor="hand2",
+                       highlightbackground=BBVA_BLUE_DARK, highlightthickness=1,
+                       width=width, height=height)
+        btn.pack_propagate(False)
+        tk.Label(btn, text=icon, font=("Helvetica", 20), bg=color, fg=BBVA_WHITE).pack(pady=(8, 0))
+        tk.Label(btn, text=label, font=("Helvetica", 8, "bold"),
+                 bg=color, fg=BBVA_WHITE, wraplength=110, justify="center").pack()
+        btn.bind("<Button-1>", lambda e: cmd())
+        for child in btn.winfo_children():
+            child.bind("<Button-1>", lambda e: cmd())
+        btn.bind("<Enter>", lambda e: btn.config(bg=BBVA_SKY) or
+                 [c.config(bg=BBVA_SKY) for c in btn.winfo_children()])
+        btn.bind("<Leave>", lambda e: btn.config(bg=color) or
+                 [c.config(bg=color) for c in btn.winfo_children()])
+        return btn
+
+    # ─── LOGIN ────────────────────────────────────────────────────────────────
+    def _build_login(self):
+        self._clear()
+        self._topbar(self.root, "Inicio de sesión")
+
+        # cuerpo
+        body = tk.Frame(self.root, bg=BBVA_LIGHT_BG)
+        body.pack(fill="both", expand=True, padx=0, pady=0)
+
+        # columna izquierda — visual
+        left = tk.Frame(body, bg=BBVA_BLUE, width=260)
+        left.pack(side="left", fill="y")
+        left.pack_propagate(False)
+        tk.Label(left, text="💳", font=("Helvetica", 52), bg=BBVA_BLUE, fg=BBVA_WHITE).pack(pady=(80, 8))
+        tk.Label(left, text="Inserta tu tarjeta\no ingresa tu NIP", font=("Helvetica", 13),
+                 fg="#A8C8F0", bg=BBVA_BLUE, justify="center").pack()
+        tk.Label(left, text="─" * 22, fg="#1464A5", bg=BBVA_BLUE).pack(pady=8)
+        tk.Label(left, text="Operaciones seguras\ncifradas con SSL 256-bit",
+                 font=("Helvetica", 8), fg="#5A90C0", bg=BBVA_BLUE, justify="center").pack()
+
+        # columna derecha — formulario
+        right = tk.Frame(body, bg=BBVA_LIGHT_BG)
+        right.pack(side="left", fill="both", expand=True)
+
+        tk.Label(right, text="Bienvenido a BBVA Bancomer",
+                 font=("Georgia", 15, "bold"), fg=BBVA_BLUE_DARK, bg=BBVA_LIGHT_BG).pack(pady=(40, 4))
+        tk.Label(right, text="Selecciona la operación que deseas realizar",
+                 font=("Helvetica", 9), fg=BBVA_MID_GRAY, bg=BBVA_LIGHT_BG).pack()
+
+        card = self._card(right, padx=40, pady=20)
+        tk.Label(card, text="  🔒  Número de Identificación Personal (NIP)",
+                 font=("Helvetica", 9, "bold"), fg=BBVA_BLUE, bg=BBVA_WHITE,
+                 anchor="w").pack(fill="x", padx=16, pady=(14, 4))
+
+        self.nip_var = tk.StringVar()
+        nip_frame = tk.Frame(card, bg=BBVA_WHITE)
+        nip_frame.pack(fill="x", padx=16, pady=(0, 14))
+        self.nip_entry = tk.Entry(nip_frame, textvariable=self.nip_var,
+                                  show="●", font=("Courier", 18),
+                                  bg=BBVA_GRAY_BG, fg=BBVA_DARK_TEXT,
+                                  relief="flat", highlightbackground=BBVA_BLUE,
+                                  highlightthickness=2, width=16, justify="center")
+        self.nip_entry.pack(side="left", ipady=8, padx=(0, 8))
+        self.nip_entry.bind("<Return>", lambda e: self._login())
+        self.nip_entry.focus()
+
+        tk.Button(nip_frame, text="INGRESAR →", font=("Helvetica", 10, "bold"),
+                  bg=BBVA_BLUE, fg=BBVA_WHITE, activebackground=BBVA_BLUE_DARK,
+                  relief="flat", cursor="hand2", padx=14, pady=8,
+                  command=self._login).pack(side="left")
+
+        # teclado numérico
+        pad_frame = tk.Frame(right, bg=BBVA_LIGHT_BG)
+        pad_frame.pack(pady=8)
+        keys = ["1","2","3","4","5","6","7","8","9","⌫","0","✓"]
+        for i, k in enumerate(keys):
+            col = i % 3
+            row = i // 3
+            color = BBVA_RED if k == "⌫" else BBVA_GREEN if k == "✓" else BBVA_BLUE_BTN
+            def make_cmd(key=k):
+                if key == "⌫":
+                    cur = self.nip_var.get()
+                    self.nip_var.set(cur[:-1])
+                elif key == "✓":
+                    self._login()
+                else:
+                    self.nip_var.set(self.nip_var.get() + key)
+            btn = tk.Button(pad_frame, text=k, font=("Helvetica", 11, "bold"),
+                            bg=color, fg=BBVA_WHITE, width=4, height=1,
+                            activebackground=BBVA_SKY, relief="flat",
+                            cursor="hand2", command=make_cmd)
+            btn.grid(row=row, column=col, padx=3, pady=3, ipady=4)
+
+        self._footbar(self.root)
+
+    def _login(self):
+        raw = self.nip_var.get().strip()
+        if not raw.isdigit():
+            messagebox.showerror("NIP inválido", "Por favor ingresa solo números.")
+            return
+        if int(raw) == NIP_CORRECTO:
+            self._build_menu()
+        else:
+            self.nip_var.set("")
+            messagebox.showerror("NIP incorrecto",
+                                 "El NIP ingresado no es válido.\nPor favor inténtalo de nuevo.")
+
+    # ─── MENÚ ─────────────────────────────────────────────────────────────────
+    def _build_menu(self):
+        self._clear()
+        self._topbar(self.root, "Menú principal")
+
+        body = tk.Frame(self.root, bg=BBVA_LIGHT_BG)
+        body.pack(fill="both", expand=True)
+
+        # encabezado
+        hdr = tk.Frame(body, bg=BBVA_LIGHT_BG)
+        hdr.pack(fill="x", padx=24, pady=(16, 4))
+        tk.Label(hdr, text="Selecciona la operación que deseas realizar",
+                 font=("Helvetica", 11), fg=BBVA_DARK_TEXT, bg=BBVA_LIGHT_BG).pack(side="left")
+
+        # saldo card
+        sc = tk.Frame(body, bg=BBVA_WHITE, highlightbackground=BBVA_BORDER,
+                      highlightthickness=1)
+        sc.pack(padx=24, pady=(0, 12), fill="x")
+        inner = tk.Frame(sc, bg=BBVA_WHITE)
+        inner.pack(side="right", padx=20, pady=10)
+        tk.Label(inner, text="SALDO DISPONIBLE", font=("Helvetica", 8, "bold"),
+                 fg=BBVA_MID_GRAY, bg=BBVA_WHITE).pack(anchor="e")
+        self.saldo_lbl = tk.Label(inner, text=f"$ {self.saldo:,.2f}",
+                                  font=("Georgia", 22, "bold"),
+                                  fg=BBVA_BLUE, bg=BBVA_WHITE)
+        self.saldo_lbl.pack(anchor="e")
+        tk.Label(sc, text="💳  Cuenta •••• 4521", font=("Helvetica", 9),
+                 fg=BBVA_MID_GRAY, bg=BBVA_WHITE).pack(side="left", padx=20, pady=14)
+
+        # sección Con efectivo
+        sec1 = tk.Frame(body, bg=BBVA_LIGHT_BG)
+        sec1.pack(fill="x", padx=24, pady=(0, 4))
+        tk.Label(sec1, text="Con efectivo", font=("Helvetica", 9, "bold"),
+                 fg=BBVA_MID_GRAY, bg=BBVA_LIGHT_BG).pack(side="left")
+
+        grid1 = tk.Frame(body, bg=BBVA_LIGHT_BG)
+        grid1.pack(padx=24, pady=(0, 10), anchor="w")
+        btns_eff = [
+            ("💵", "Depositar\na cuentas", self._build_depositar, BBVA_BLUE_BTN),
+            ("📄", "Pagar\nservicios",   self._dummy,             BBVA_BLUE_BTN),
+            ("💳", "Pagar Tarjeta\nde Crédito", self._dummy,      BBVA_BLUE_BTN),
+        ]
+        for i, (ic, lb, cmd, col) in enumerate(btns_eff):
+            b = self._atm_btn(grid1, ic, lb, cmd, color=col, width=140, height=75)
+            b.grid(row=0, column=i, padx=5, pady=0)
+
+        # sección Con tarjeta
+        sec2 = tk.Frame(body, bg=BBVA_LIGHT_BG)
+        sec2.pack(fill="x", padx=24, pady=(0, 4))
+        tk.Label(sec2, text="Con tarjeta", font=("Helvetica", 9, "bold"),
+                 fg=BBVA_MID_GRAY, bg=BBVA_LIGHT_BG).pack(side="left")
+
+        grid2 = tk.Frame(body, bg=BBVA_LIGHT_BG)
+        grid2.pack(padx=24, pady=(0, 10), anchor="w")
+        btns_card = [
+            ("🏦", "Préstamos\ndisponibles", self._dummy,           BBVA_ORANGE),
+            ("📊", "Consultar saldo\ny movimientos", self._dummy,   BBVA_BLUE_BTN),
+            ("📱", "Comprar\ntiempo aire",  self._dummy,            BBVA_BLUE_BTN),
+            ("💸", "Retirar",               self._build_retirar,    BBVA_BLUE_BTN),
+        ]
+        for i, (ic, lb, cmd, col) in enumerate(btns_card):
+            b = self._atm_btn(grid2, ic, lb, cmd, color=col, width=140, height=75)
+            b.grid(row=0, column=i, padx=5, pady=0)
+
+        # botón salir
+        exit_bar = tk.Frame(body, bg=BBVA_LIGHT_BG)
+        exit_bar.pack(fill="x", padx=24, pady=(0, 8))
+        tk.Button(exit_bar, text="  Salir  ", font=("Helvetica", 10, "bold"),
+                  bg=BBVA_RED, fg=BBVA_WHITE, activebackground="#A50015",
+                  relief="flat", cursor="hand2", padx=20, pady=6,
+                  command=self._salir).pack(side="right")
+
+        self._footbar(self.root)
+
+    def _dummy(self):
+        messagebox.showinfo("Servicio no disponible",
+                            "Esta operación no está disponible en esta demo.")
+
+    # ─── DEPÓSITO ─────────────────────────────────────────────────────────────
+    def _build_depositar(self):
+        self._clear()
+        self._topbar(self.root, "Depósito a cuenta")
+        body = tk.Frame(self.root, bg=BBVA_LIGHT_BG)
+        body.pack(fill="both", expand=True)
+
+        left = tk.Frame(body, bg=BBVA_BLUE, width=220)
+        left.pack(side="left", fill="y")
+        left.pack_propagate(False)
+        tk.Label(left, text="💵", font=("Helvetica", 48), bg=BBVA_BLUE, fg=BBVA_WHITE).pack(pady=(70, 8))
+        tk.Label(left, text="Depósito\na cuenta", font=("Helvetica", 13, "bold"),
+                 fg=BBVA_WHITE, bg=BBVA_BLUE, justify="center").pack()
+        tk.Label(left, text=f"Saldo actual:\n$ {self.saldo:,.2f}",
+                 font=("Helvetica", 10), fg="#A8C8F0", bg=BBVA_BLUE, justify="center").pack(pady=16)
+
+        right = tk.Frame(body, bg=BBVA_LIGHT_BG)
+        right.pack(fill="both", expand=True)
+
+        tk.Label(right, text="Ingresa el monto a depositar",
+                 font=("Georgia", 13, "bold"), fg=BBVA_BLUE_DARK,
+                 bg=BBVA_LIGHT_BG).pack(pady=(40, 8))
+
+        card = self._card(right, padx=40, pady=10)
+        tk.Label(card, text="  $ Monto", font=("Helvetica", 9, "bold"),
+                 fg=BBVA_BLUE, bg=BBVA_WHITE, anchor="w").pack(fill="x", padx=16, pady=(12, 4))
+        self.dep_var = tk.StringVar()
+        self.dep_entry = tk.Entry(card, textvariable=self.dep_var,
+                                  font=("Georgia", 20), bg=BBVA_GRAY_BG,
+                                  fg=BBVA_DARK_TEXT, relief="flat",
+                                  highlightbackground=BBVA_BLUE, highlightthickness=2,
+                                  justify="right")
+        self.dep_entry.pack(fill="x", padx=16, pady=(0, 14), ipady=10)
+        self.dep_entry.focus()
+        self.dep_entry.bind("<Return>", lambda e: self._depositar())
+
+        # montos rápidos
+        quick = tk.Frame(card, bg=BBVA_WHITE)
+        quick.pack(fill="x", padx=16, pady=(0, 12))
+        tk.Label(quick, text="Montos rápidos:", font=("Helvetica", 8),
+                 fg=BBVA_MID_GRAY, bg=BBVA_WHITE).pack(side="left", padx=(0, 8))
+        for amt in [100, 200, 500, 1000]:
+            def set_amt(a=amt):
+                self.dep_var.set(str(a))
+            tk.Button(quick, text=f"${amt}", font=("Helvetica", 8, "bold"),
+                      bg=BBVA_LIGHT_BG, fg=BBVA_BLUE, relief="flat",
+                      cursor="hand2", padx=6, pady=3, command=set_amt).pack(side="left", padx=2)
+
+        btn_row = tk.Frame(right, bg=BBVA_LIGHT_BG)
+        btn_row.pack(padx=40, pady=8, fill="x")
+        tk.Button(btn_row, text="← Regresar", font=("Helvetica", 10),
+                  bg=BBVA_BORDER, fg=BBVA_BLUE_DARK, relief="flat",
+                  cursor="hand2", padx=16, pady=8,
+                  command=self._build_menu).pack(side="left")
+        tk.Button(btn_row, text="Confirmar depósito ✓", font=("Helvetica", 10, "bold"),
+                  bg=BBVA_GREEN, fg=BBVA_WHITE, activebackground="#007A3D",
+                  relief="flat", cursor="hand2", padx=16, pady=8,
+                  command=self._depositar).pack(side="right")
+
+        self._footbar(self.root)
+
+    def _depositar(self):
+        raw = self.dep_var.get().strip().replace(",", "")
+        try:
+            monto = float(raw)
+            assert monto > 0
+        except:
+            messagebox.showerror("Monto inválido", "Por favor ingresa un monto válido mayor a $0.")
+            return
+        self.saldo += monto
+        messagebox.showinfo("✅ Operación exitosa",
+                            f"Depósito de ${monto:,.2f} realizado correctamente.\n\nNuevo saldo: ${self.saldo:,.2f}")
+        self._build_menu()
+
+    # ─── RETIRO ───────────────────────────────────────────────────────────────
+    def _build_retirar(self):
+        self._clear()
+        self._topbar(self.root, "Retiro de efectivo")
+        body = tk.Frame(self.root, bg=BBVA_LIGHT_BG)
+        body.pack(fill="both", expand=True)
+
+        left = tk.Frame(body, bg=BBVA_BLUE, width=220)
+        left.pack(side="left", fill="y")
+        left.pack_propagate(False)
+        tk.Label(left, text="💸", font=("Helvetica", 48), bg=BBVA_BLUE, fg=BBVA_WHITE).pack(pady=(70, 8))
+        tk.Label(left, text="Retiro\nde efectivo", font=("Helvetica", 13, "bold"),
+                 fg=BBVA_WHITE, bg=BBVA_BLUE, justify="center").pack()
+        tk.Label(left, text=f"Saldo disponible:\n$ {self.saldo:,.2f}",
+                 font=("Helvetica", 10), fg="#A8C8F0", bg=BBVA_BLUE, justify="center").pack(pady=16)
+
+        right = tk.Frame(body, bg=BBVA_LIGHT_BG)
+        right.pack(fill="both", expand=True)
+
+        tk.Label(right, text="Ingresa el monto a retirar",
+                 font=("Georgia", 13, "bold"), fg=BBVA_BLUE_DARK,
+                 bg=BBVA_LIGHT_BG).pack(pady=(40, 8))
+
+        card = self._card(right, padx=40, pady=10)
+        tk.Label(card, text="  $ Monto", font=("Helvetica", 9, "bold"),
+                 fg=BBVA_BLUE, bg=BBVA_WHITE, anchor="w").pack(fill="x", padx=16, pady=(12, 4))
+        self.ret_var = tk.StringVar()
+        self.ret_entry = tk.Entry(card, textvariable=self.ret_var,
+                                  font=("Georgia", 20), bg=BBVA_GRAY_BG,
+                                  fg=BBVA_DARK_TEXT, relief="flat",
+                                  highlightbackground=BBVA_BLUE, highlightthickness=2,
+                                  justify="right")
+        self.ret_entry.pack(fill="x", padx=16, pady=(0, 14), ipady=10)
+        self.ret_entry.focus()
+        self.ret_entry.bind("<Return>", lambda e: self._retirar())
+
+        quick = tk.Frame(card, bg=BBVA_WHITE)
+        quick.pack(fill="x", padx=16, pady=(0, 12))
+        tk.Label(quick, text="Montos rápidos:", font=("Helvetica", 8),
+                 fg=BBVA_MID_GRAY, bg=BBVA_WHITE).pack(side="left", padx=(0, 8))
+        for amt in [100, 200, 500, 1000]:
+            def set_amt(a=amt):
+                self.ret_var.set(str(a))
+            tk.Button(quick, text=f"${amt}", font=("Helvetica", 8, "bold"),
+                      bg=BBVA_LIGHT_BG, fg=BBVA_BLUE, relief="flat",
+                      cursor="hand2", padx=6, pady=3, command=set_amt).pack(side="left", padx=2)
+
+        btn_row = tk.Frame(right, bg=BBVA_LIGHT_BG)
+        btn_row.pack(padx=40, pady=8, fill="x")
+        tk.Button(btn_row, text="← Regresar", font=("Helvetica", 10),
+                  bg=BBVA_BORDER, fg=BBVA_BLUE_DARK, relief="flat",
+                  cursor="hand2", padx=16, pady=8,
+                  command=self._build_menu).pack(side="left")
+        tk.Button(btn_row, text="Confirmar retiro ✓", font=("Helvetica", 10, "bold"),
+                  bg=BBVA_BLUE, fg=BBVA_WHITE, activebackground=BBVA_BLUE_DARK,
+                  relief="flat", cursor="hand2", padx=16, pady=8,
+                  command=self._retirar).pack(side="right")
+
+        self._footbar(self.root)
+
+    def _retirar(self):
+        raw = self.ret_var.get().strip().replace(",", "")
+        try:
+            monto = float(raw)
+            assert monto > 0
+        except:
+            messagebox.showerror("Monto inválido", "Por favor ingresa un monto válido mayor a $0.")
+            return
+        if monto > self.saldo:
+            messagebox.showerror("Saldo insuficiente",
+                                 f"No cuentas con saldo suficiente.\n\nSaldo disponible: ${self.saldo:,.2f}")
+        else:
+            self.saldo -= monto
+            messagebox.showinfo("✅ Retiro exitoso",
+                                f"Retiro de ${monto:,.2f} realizado.\n\nNuevo saldo: ${self.saldo:,.2f}")
+            self._build_menu()
+
+    # ─── SALIR ────────────────────────────────────────────────────────────────
+    def _salir(self):
+        if messagebox.askyesno("Cerrar sesión", "¿Deseas terminar tu operación y retirar tu tarjeta?"):
+            self._clear()
+            tk.Label(self.root, text="BBVA Bancomer", font=("Georgia", 22, "bold italic"),
+                     fg=BBVA_BLUE, bg=BBVA_LIGHT_BG).pack(pady=(140, 8))
+            tk.Label(self.root, text="Gracias por usar nuestros servicios.\nRetira tu tarjeta.",
+                     font=("Helvetica", 12), fg=BBVA_MID_GRAY,
+                     bg=BBVA_LIGHT_BG, justify="center").pack()
+            tk.Label(self.root, text="💳", font=("Helvetica", 40),
+                     bg=BBVA_LIGHT_BG).pack(pady=12)
+            self.root.after(2500, self.root.destroy)
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = CajeroBBVA(root)
+    root.mainloop()
